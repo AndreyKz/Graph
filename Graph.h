@@ -8,6 +8,7 @@ class Graph
 {
 public:
 	Graph();
+	Graph::Graph(int num, char form);
 	~Graph();
 
 	void readGraph(const string fileName);
@@ -18,6 +19,9 @@ public:
 	void transformToAdjMatrix();
 	void transformToListOfEdges();
 	void writeGraph(const string file_name);
+	Graph getSpaningTreePrima();
+	Graph getSpaningTreeKruscal();
+	Graph getSpaningTreeBoruvka();
 
 private:
 	char graph_form;
