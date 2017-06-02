@@ -6,6 +6,7 @@
 using namespace std;
 
 Graph::Graph() {}
+
 Graph::Graph(int num, char form)
 {
 	n = num;
