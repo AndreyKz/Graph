@@ -1,13 +1,19 @@
 #include "DSU.h"
 
 DSU::DSU() {};
-DSU::DSU(int) {};
+DSU::DSU(int num) 
+{
+	p.resize(num+1);
+	for (int i = 0; i < p.size(); i++) {
+		p[i] = i;
+	}
+	rank.resize(num+1);
+	fill(rank.begin(), rank.end(), 1);
+};
 DSU::~DSU() {};
 
 void DSU::MakeSet(int x)
 {
-	p[x] = x;
-	rank[x] = 0;
 }
 
 int DSU::Find(int x)
