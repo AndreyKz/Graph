@@ -1,11 +1,11 @@
-const int MAXN = 10000;
-
+#include <vector>
+#include <algorithm>
+using namespace std;
 class DSU
 {
 private:
-	
-	int p[MAXN], rank[MAXN];
-
+	vector <int> p;
+	vector <int> rank;
 public:
 	
 	DSU();
