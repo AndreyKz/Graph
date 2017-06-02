@@ -886,12 +886,12 @@ Graph Graph::getSpaningTreeKruscal()
 	Graph ng = Graph(n, transformedFrom);
 	int cost = 0;
 	vector <pair<int, int> > res;
-	DSU dsu;
+	DSU dsu = DSU(n);
 
 	sort(graph_ew.begin(), graph_ew.end(), sortcol);
 
-	for (int i = 0; i < m; i++)
-		dsu.MakeSet(i);
+	//for (int i = 0; i < m; i++)
+	//	dsu.MakeSet(i);
 
 	for (int i = 0; i < m; i++) 
 	{
@@ -926,7 +926,7 @@ Graph Graph::getSpaningTreeBoruvka()
 {
 	Graph ng = Graph(n, graph_form);
 
-	DSU dsu;
+	DSU dsu = DSU(n);
 	vector <int> minEdge(n);
 	vector <int> sel_e(n);
 	int cost = 0;
@@ -975,8 +975,8 @@ Graph Graph::getSpaningTreeBoruvka()
 		{
 			for (int i = 0; i < graph_ew.size(); i++) 
 			{
-				dsu.MakeSet(get<0>(graph_ew[i]) - 1);
-				dsu.MakeSet(get<1>(graph_ew[i]) - 1);
+				//dsu.MakeSet(get<0>(graph_ew[i]) - 1);
+				//dsu.MakeSet(get<1>(graph_ew[i]) - 1);
 				int a = dsu.Find(get<0>(graph_ew[i]) - 1);
 				int b = dsu.Find(get<1>(graph_ew[i]) - 1);
 				int w = get<2>(graph_ew[i]);
@@ -1000,8 +1000,8 @@ Graph Graph::getSpaningTreeBoruvka()
 			{
 				for (int j = 0; j < graph_lw[i].size(); j++) 
 				{
-					dsu.MakeSet(i);
-					dsu.MakeSet(graph_lw[i][j].first - 1);
+					//dsu.MakeSet(i);
+					//dsu.MakeSet(graph_lw[i][j].first - 1);
 					int a = dsu.Find(i);
 					int b = dsu.Find(graph_lw[i][j].first - 1);
 					int w = graph_lw[i][j].second;
@@ -1026,8 +1026,8 @@ Graph Graph::getSpaningTreeBoruvka()
 			{
 				for (int j = 0; j < graph_m[i].size(); j++) 
 				{
-					dsu.MakeSet(i);
-					dsu.MakeSet(j);
+					//dsu.MakeSet(i);
+					//dsu.MakeSet(j);
 					int a = dsu.Find(i);
 					int b = dsu.Find(j);
 					int w = graph_m[i][j];
