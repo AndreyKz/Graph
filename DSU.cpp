@@ -12,18 +12,14 @@ DSU::DSU(int num)
 };
 DSU::~DSU() {};
 
-void DSU::MakeSet(int x)
+int DSU::find(int x)
 {
+	return (x == p[x] ? x : p[x] = find(p[x]));
 }
 
-int DSU::Find(int x)
+void DSU::unite(int x, int y)
 {
-	return (x == p[x] ? x : p[x] = Find(p[x]));
-}
-
-void DSU::Union(int x, int y)
-{
-	if ((x = Find(x)) == (y = Find(y)))
+	if ((x = find(x)) == (y = find(y)))
 		return;
 
 	if (rank[x] <  rank[y])
