@@ -12,7 +12,6 @@ public:
 	DSU(int);
 	~DSU();
 
-	void MakeSet(int x);
-	int Find(int x);
-	void Union(int x, int y);
+	int find(int x);
+	void unite(int x, int y);
 };
