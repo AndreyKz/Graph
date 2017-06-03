@@ -1,6 +1,8 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <queue>
+#include <stack>
 #include <tuple>
 using namespace std;
 
@@ -8,7 +10,7 @@ class Graph
 {
 public:
 	Graph();
-	Graph::Graph(int num, char form);
+	Graph(int num, char gform);
 	~Graph();
 
 	void readGraph(const string fileName);
@@ -22,6 +24,7 @@ public:
 	Graph getSpaningTreePrima();
 	Graph getSpaningTreeKruscal();
 	Graph getSpaningTreeBoruvka();
+
 
 private:
 	char graph_form;
