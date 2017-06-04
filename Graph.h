@@ -24,6 +24,12 @@ public:
 	Graph getSpaningTreePrima();
 	Graph getSpaningTreeKruscal();
 	Graph getSpaningTreeBoruvka();
+	int checkEuler_l(bool &circleExist);
+	int checkEuler_c(bool &circleExist);
+	int checkEuler(bool &circleExist);
+	bool bfs(int first_v, int second_v, set <pair<int, int>> visited);
+	vector<int> getEuleranTourFleri();
+	vector<int> getEuleranTourEffective();
 
 
 private:
