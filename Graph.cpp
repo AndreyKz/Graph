@@ -1121,3 +1121,686 @@ Graph Graph::getSpaningTreeBoruvka()
 	cout << "Bor: " << res_cost << endl;
 	return res_graph;
 }
+
+int Graph::checkEuler_c(bool &circleExist)
+{
+	DSU dsu = DSU(n);
+	int OddVertex = 0;
+	int check = 0;
+	int init_vertex;
+	for (int i = 0; i < graph_m.size(); i++)
+	{
+		check = 0;
+
+		for (int j = 0; j < graph_m[i].size(); j++)
+		{
+			if (graph_m[i][j] > 0)
+			{
+				++check;
+			}
+		}
+		if (check % 2 == 1)
+		{
+			++OddVertex;
+			init_vertex = i; 
+		}
+	}
+	if ((OddVertex > 2) && (OddVertex == 1))
+	{
+		return 0;
+	}
+	else
+	{
+		if (OddVertex == 2)
+		{
+			circleExist = false;
+		}
+	}
+
+	for (int i = 0; i < graph_m.size(); i++)
+	{
+		for (int j = 0; j < graph_m[i].size(); j++)
+		{
+			if (graph_m[i][j] > 0)
+			{
+				if (dsu.find(j) != dsu.find(i))
+				{
+					dsu.unite(i,j);
+				}
+			}
+		}
+	}
+	
+	for (int i = 1; i < graph_m.size(); i++)
+	{
+		if (dsu.find(i) != dsu.find(i - 1))
+		{
+			return 0;
+		}
+	}
+
+	if (OddVertex == 0)
+	{
+		circleExist = true;
+		init_vertex = 1;
+		return init_vertex;
+	}
+	else
+	{
+		if (OddVertex == 2)
+		{
+			return ++init_vertex;
+		}
+		return 0;
+	}
+}
+
+int Graph::checkEuler_l(bool &circleExist)
+{
+	DSU dsu = DSU(n);
+	int OddVertex = 0;
+	int check = 0;
+	int init_vertex;
+	if (w)
+	{
+		for (int i = 0; i < graph_lw.size(); i++)
+		{
+			if (graph_lw[i].size() % 2 == 1)
+			{
+				++OddVertex;
+				init_vertex = i;
+			}
+		}
+		if ((OddVertex > 2) && (OddVertex == 1))
+		{
+			return 0;
+		}
+		else
+		{
+			if (OddVertex == 2)
+			{
+				circleExist = false;
+			}
+		}
+
+		for (int i = 0; i < graph_lw.size(); i++)
+		{
+			for (int j = 0; j < graph_lw[i].size(); j++)
+			{
+				if (dsu.find(graph_lw[i][j].first-1) != dsu.find(i))
+				{
+					dsu.unite(i, j);
+				}
+			}
+		}
+
+		for (int i = 1; i < graph_lw.size(); i++)
+		{
+			if (dsu.find(i) != dsu.find(i - 1))
+			{
+				return 0;
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < graph_l.size(); i++)
+		{
+			if (graph_l[i].size() % 2 == 1)
+			{
+				++OddVertex;
+				init_vertex = i;
+			}
+		}
+		if ((OddVertex > 2) && (OddVertex == 1))
+		{
+			return 0;
+		}
+		else
+		{
+			if (OddVertex == 2)
+			{
+				circleExist = false;
+			}
+		}
+
+		for (int i = 0; i < graph_l.size(); i++)
+		{
+			for (int j = 0; j < graph_l[i].size(); j++)
+			{
+				if (dsu.find(graph_l[i][j]-1) != dsu.find(i))
+				{
+					dsu.unite(i, j);
+				}
+			}
+		}
+
+		for (int i = 1; i < graph_l.size(); i++)
+		{
+			if (dsu.find(i) != dsu.find(i - 1))
+			{
+				return 0;
+			}
+		}
+	}
+
+	if (OddVertex == 0)
+	{
+		circleExist = true;
+		init_vertex = 1;
+		return init_vertex;
+	}
+	else
+	{
+		if (OddVertex == 2)
+		{
+			return ++init_vertex;
+		}
+		return 0;
+	}
+}
+
+int Graph::checkEuler(bool &circleExist)
+{
+	switch (graph_form)
+	{
+	case GRAPH_AdjMatrix:
+	{
+			   return checkEuler_c(circleExist);
+			   break;
+	}
+	case GRAPH_AdjList:
+	{
+			   return checkEuler_l(circleExist);
+			   break;
+	}
+	case GRAPH_ListOfEdges:
+	{
+			   int k;
+			   this->transformToAdjList();
+			   k =  checkEuler_l(circleExist);
+			   this->transformToListOfEdges();
+			   return k;
+			   break;
+	}
+	}
+}
+
+bool Graph::bfs(int first_v, int second_v, set <pair<int, int>> visited)
+{
+	switch (graph_form)
+	{
+	case GRAPH_AdjMatrix:
+	{
+			   queue<int> q;
+			   q.push(first_v);
+			   vector<bool> used(n);
+			   //vector<int> d(n), p(n);
+			   used[first_v] = true;
+			  // p[first_v] = -1;
+			   while (!q.empty()) {
+				   int v = q.front();
+				   q.pop();
+				   for (size_t i = 0; i < graph_m[v].size(); ++i) {
+					   if (graph_m[v][i] > 0)
+					   {
+						   bool visited_e = false;
+						   if (v < i)
+							   visited_e = visited.find(make_pair(v, i)) != visited.end();
+						   else
+							   visited_e = visited.find(make_pair(i, v)) != visited.end();
+						   if (!used[i] && (v != first_v || i != second_v) && !visited_e)
+						   {
+							   used[i] = true;
+							   if (i == second_v) return false;
+							   q.push(i);
+							   //d[to] = d[v] + 1;
+							   //p[to] = v;
+						   }
+					   }
+				   }
+			   }
+			   return(true);
+	}
+
+	case GRAPH_AdjList:
+	{
+			   queue<int> q;
+			   q.push(first_v);
+			   vector<bool> used(n);
+			   //vector<int> d(n), p(n);
+			   used[first_v] = true;
+			  // p[first_v] = -1;
+			   if (w)
+			   {
+				   while (!q.empty()) {
+					   int v = q.front();
+					   q.pop();
+					   for (size_t i = 0; i < graph_lw[v].size(); ++i) {
+						   int to = graph_lw[v][i].first - 1;
+						   bool visited_e = false;
+						   if (v < to)
+							   visited_e = visited.find(make_pair(v, to)) != visited.end();
+						   else
+							   visited_e = visited.find(make_pair(to, v)) != visited.end();
+						   if (!used[to] && (v != first_v || to != second_v) && !visited_e)
+						   {
+							   used[to] = true;
+							   if (to == second_v) return false;
+							   q.push(to);
+							   //d[to] = d[v] + 1;
+							   //p[to] = v;
+						   }
+					   }
+				   }
+			   }
+			   else
+			   {
+				   while (!q.empty()) {
+					   int v = q.front();
+					   q.pop();
+					   for (size_t i = 0; i < graph_l[v].size(); ++i) {
+						   int to = graph_l[v][i] - 1;
+						   bool visited_e = false;
+						   if (v < to)
+							   visited_e = visited.find(make_pair(v, to)) != visited.end();
+						   else
+							   visited_e = visited.find(make_pair(to, v)) != visited.end();
+						   if (!used[to] && (v != first_v || to != second_v) && !visited_e)
+						   {
+							   used[to] = true;
+							   if (to == second_v) return false;
+							   q.push(to);
+							   //d[to] = d[v] + 1;
+							   //p[to] = v;
+						   }
+					   }
+				   }
+			   }
+			   return(true);
+	}
+	}
+}
+
+vector<int> Graph::getEuleranTourFleri()
+{
+	int init_vertex;
+	int k;
+	bool circleExist;
+	vector<int> res;
+	bool tr = false;
+
+	if (graph_form == GRAPH_ListOfEdges)
+	{
+		tr = true;
+		transformToAdjList();
+	}
+
+	k = checkEuler(circleExist);
+	if (circleExist)
+	{
+		init_vertex = 0;
+	}
+	else
+	{
+		if (k != 0)
+		{
+			init_vertex = k - 1;
+		}
+		else
+		{
+			return res;
+		}
+	}
+
+	
+		switch (graph_form)
+		{
+		case GRAPH_AdjMatrix:
+		{
+								if (!w)
+								{
+									set <pair<int, int>> visited;
+									int check = 0;
+									int v = init_vertex;
+									res.push_back(v);
+									while (check < m)
+									{
+										int bridge = -1;
+										int old_v = v;
+										for (int i = 0; i < graph_l[v].size(); i++)
+										{
+											int to = graph_l[v][i] - 1;
+
+											bool visited_e = false;
+											if (v < to)
+												visited_e = visited.find(make_pair(v, to)) != visited.end();
+											else
+												visited_e = visited.find(make_pair(to, v)) != visited.end();
+											if (visited_e)
+												continue;
+											if (!bfs(v, to, visited))
+											{
+												res.push_back(to);
+												if (v < to)
+													visited.insert(make_pair(v, to));
+												else
+													visited.insert(make_pair(to, v));
+												++check;
+												v = to;
+												old_v = v;
+												continue;
+											}
+											else
+											{
+												bridge = to;
+											}
+										}
+
+										if (bridge != -1 && old_v == v)
+										{
+											res.push_back(bridge);
+											if (v < bridge)
+												visited.insert(make_pair(v, bridge));
+											else
+												visited.insert(make_pair(bridge, v));
+											++check;
+											v = bridge;
+										}
+									}
+									for (int i = 0; i < res.size(); i++)
+										cout << res[i] << " ";
+									return res;
+								}
+								else
+								{
+									set <pair<int, int>> visited;
+									int check = 0;
+									int v = init_vertex;
+									res.push_back(v);
+									while (check < m)
+									{
+										int bridge = -1;
+										int old_v = v;
+										for (int i = 0; i < graph_l[v].size(); i++)
+										{
+											int to = graph_l[v][i] - 1;
+
+											bool visited_e = false;
+											if (v < to)
+												visited_e = visited.find(make_pair(v, to)) != visited.end();
+											else
+												visited_e = visited.find(make_pair(to, v)) != visited.end();
+											if (visited_e)
+												continue;
+											if (!bfs(v, to, visited))
+											{
+												res.push_back(to);
+												if (v < to)
+													visited.insert(make_pair(v, to));
+												else
+													visited.insert(make_pair(to, v));
+												++check;
+												v = to;
+												continue;
+											}
+											else
+											{
+												bridge = to;
+											}
+										}
+										if (bridge != -1 && old_v == v)
+										{
+											res.push_back(bridge);
+											if (v < bridge)
+												visited.insert(make_pair(v, bridge));
+											else
+												visited.insert(make_pair(bridge, v));
+											++check;
+											v = bridge;
+										}
+										old_v = v;
+									}
+									for (int i = 0; i < res.size(); i++)
+										cout << res[i] << " ";
+									return res;
+								}
+				   break;
+		}
+		case GRAPH_AdjList:
+		{
+							  if (!w)
+							  {
+								  set <pair<int, int>> visited;
+								  int check = 0;
+								  int v = init_vertex;
+								  res.push_back(v);
+								  while (check < m)
+								  {
+									  int bridge = -1;
+									  int old_v = v;
+									  for (int i = 0; i < graph_l[v].size(); i++)
+									  {
+										  int to = graph_l[v][i] - 1;
+										  
+										  bool visited_e = false;
+										  if (v < to)
+											  visited_e = visited.find(make_pair(v, to)) != visited.end();
+										  else
+											  visited_e = visited.find(make_pair(to, v)) != visited.end();
+										  if (visited_e)
+											  continue;
+										  if (!bfs(v, to, visited))
+										  {
+											  res.push_back(to);
+											  if (v < to)
+												  visited.insert(make_pair(v, to));
+											  else
+												  visited.insert(make_pair(to, v));
+											  ++check;
+											  v = to;
+											  continue;
+										  }
+										  else
+										  {
+											  bridge = to;
+										  }
+									  }
+
+									  if (bridge != -1 && old_v == v)
+									  {
+										  res.push_back(bridge);
+										  if (v < bridge)
+											  visited.insert(make_pair(v, bridge));
+										  else
+											  visited.insert(make_pair(bridge, v));
+										  ++check;
+										  v = bridge;
+									  }
+									  old_v = v;
+								  }
+								  for (int i = 0; i < res.size(); i++)
+									  cout << res[i] << " ";
+								  if (tr)
+									  this->transformToListOfEdges();
+								  return res;
+							  }
+							  else
+							  {
+								  set <pair<int, int>> visited;
+								  int check = 0;
+								  int v = init_vertex;
+								  res.push_back(v);
+								  while (check < m)
+								  {
+									  int bridge = -1;
+									  int old_v = v;
+									  for (int i = 0; i < graph_lw[v].size(); i++)
+									  {
+										  int to = graph_lw[v][i].first - 1;
+
+										  bool visited_e = false;
+										  if (v < to)
+											  visited_e = visited.find(make_pair(v, to)) != visited.end();
+										  else
+											  visited_e = visited.find(make_pair(to, v)) != visited.end();
+										  if (visited_e)
+											  continue;
+										  if (!bfs(v, to, visited))
+										  {
+											  res.push_back(to);
+											  if (v < to)
+												  visited.insert(make_pair(v, to));
+											  else
+												  visited.insert(make_pair(to, v));
+											  ++check;
+											  v = to;
+											  continue;
+										  }
+										  else
+										  {
+											  bridge = to;
+										  }
+									  }
+									  if (bridge != -1 && old_v == v)
+									  {
+										  res.push_back(bridge);
+										  if (v < bridge)
+											  visited.insert(make_pair(v, bridge));
+										  else
+											  visited.insert(make_pair(bridge, v));
+										  ++check;
+										  v = bridge;
+									  }
+									  old_v = v;
+								  }
+								  for (int i = 0; i < res.size(); i++)
+									  cout << res[i] << " ";
+								  if (tr)
+									  this->transformToListOfEdges();
+								  return res;
+							  }
+							  break;
+		}
+		}
+}
+
+vector<int> Graph:: getEuleranTourEffective()
+{
+	set <pair<int, int>> visited;
+	vector<int> res;
+	stack<int> q;
+	int init_vertex;
+	int k;
+	bool circleExist;
+
+	bool tr = false;
+	if (graph_form == GRAPH_ListOfEdges) 
+	{
+		this->transformToAdjList();
+		tr = true;
+	}
+	k = checkEuler(circleExist);
+	if (circleExist)
+	{
+		init_vertex = 0;
+	}
+	else
+	{
+		if (k != 0)
+		{
+			init_vertex = k - 1;
+		}
+		else
+		{
+			return res;
+		}
+	}
+
+	q.push(init_vertex - 1);
+	while (!q.empty()) 
+	{
+		int v = q.top();
+		if (graph_form == GRAPH_AdjMatrix) 
+		{
+			for (int i = 0; i < graph_m[v].size(); i++) 
+			{
+				int to = i;
+				if (v == to)
+					continue;
+
+				bool visited_e = false;
+				if (v < to)
+					visited_e = visited.find(make_pair(v, to)) != visited.end();
+				else
+					visited_e = visited.find(make_pair(to, v)) != visited.end();
+
+				if (graph_m[v][to] && !visited_e) {
+					if (v < to)
+						visited.insert(make_pair(v, to));
+					else
+						visited.insert(make_pair(to, v));
+
+					q.push(to);
+					break;
+				}
+			}
+		}
+		else if (graph_form == GRAPH_AdjList) {
+			if (!w) {
+				for (int i = 0; i < graph_l[v].size(); i++) {
+					int to = graph_l[v][i] - 1;
+
+					bool visited_e = false; 
+					if (v < to)
+						visited_e = visited.find(make_pair(v, to)) != visited.end();
+					else
+						visited_e = visited.find(make_pair(to, v)) != visited.end();
+
+					if (!visited_e) {
+						if (v < to)
+							visited.insert(make_pair(v, to));
+						else
+							visited.insert(make_pair(to, v));
+
+						q.push(to);
+						break;
+					}
+				}
+			}
+			else {
+				for (int i = 0; i < graph_lw[v].size(); i++) {
+					int to = graph_lw[v][i].first - 1;
+
+					bool visited_e = false;
+					if (v < to)
+						visited_e = visited.find(make_pair(v, to)) != visited.end();
+					else
+						visited_e = visited.find(make_pair(to, v)) != visited.end();
+
+					if (!visited_e) { 
+						if (v < to)
+							visited.insert(make_pair(v, to));
+						else
+							visited.insert(make_pair(to, v));
+
+						q.push(to);
+						break;
+					}
+				}
+			}
+		}
+
+		if (v == q.top()) 
+		{
+			q.pop();
+			res.push_back(v);
+		}
+	}
+
+	if (tr) {
+		this->transformToListOfEdges();
+	}
+
+	return res;
+}
