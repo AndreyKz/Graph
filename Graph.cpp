@@ -581,21 +581,41 @@ void Graph::transformToAdjList()
 		{
 				   if (w)
 				   {
-					   for (int i = 0; i < graph_ew.size(); i++)
-					   {
-						   if (get<0>(graph_ew[i]) != 0)
-						   {
-							   graph_lw[get<0>(graph_ew[i]) - 1].push_back(make_pair(get<1>(graph_ew[i]), get<2>(graph_ew[i])));
+					   graph_lw.resize(n);
+					   for (int i = 0; i < graph_ew.size(); i++) {
+						   bool next = false;
+						   for (int j = 0; j < graph_lw[get<0>(graph_ew[i]) - 1].size(); j++) {
+							   if (graph_lw[get<0>(graph_ew[i]) - 1][j].first == get<1>(graph_ew[i])) {
+								   next = true;
+								   break;
+							   }
+						   }
+						   if (next)
+							   continue;
+
+						   graph_lw[get<0>(graph_ew[i]) - 1].push_back(make_pair(get<1>(graph_ew[i]), get<2>(graph_ew[i])));
+						   if (!d) {
+							   graph_lw[get<1>(graph_ew[i]) - 1].push_back(make_pair(get<0>(graph_ew[i]), get<2>(graph_ew[i])));
 						   }
 					   }
 				   }
 				   else
 				   {
-					   for (int i = 0; i < graph_e.size(); i++)
-					   {
-						   if (graph_e[i].first != 0)
-						   {
-							   graph_l[graph_e[i].first - 1].push_back(graph_e[i].second);
+					   graph_l.resize(n);
+					   for (int i = 0; i < graph_e.size(); i++) {
+						   bool next = false;
+						   for (int j = 0; j < graph_l[graph_e[i].first - 1].size(); j++) {
+							   if (graph_l[graph_e[i].first - 1][j] == graph_e[i].second) {
+								   next = true;
+								   break;
+							   }
+						   }
+						   if (next)
+							   continue;
+
+						   graph_l[graph_e[i].first - 1].push_back(graph_e[i].second);
+						   if (!d) {
+							   graph_l[graph_e[i].second - 1].push_back(graph_e[i].first);
 						   }
 					   }
 				   }
