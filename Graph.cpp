@@ -10,7 +10,11 @@
 
 using namespace std;
 
-Graph::Graph() {}
+Graph::Graph() 
+{
+	graph_form = 0;
+	n = m = d = w = 0;
+}
 
 Graph::Graph(int num, char gform)
 {
