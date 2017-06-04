@@ -10,7 +10,7 @@
 
 using namespace std;
 
-raph::Graph() {}
+Graph::Graph() {}
 
 Graph::Graph(int num, char gform)
 {
@@ -68,8 +68,11 @@ void Graph::readGraph(string fileName)
 						{
 							f_input >> t;
 							graph_m[i].push_back(t);
+							if (graph_m[i][j])
+								m++;
 						}
 					}
+					m /= 2;
 					break;
 		}
 
@@ -93,6 +96,7 @@ void Graph::readGraph(string fileName)
 							while (iss >> vertex) {
 								iss >> weight;
 								graph_lw[i].push_back(make_pair(vertex, weight));
+								m++;
 							};
 						};
 					}
@@ -109,6 +113,7 @@ void Graph::readGraph(string fileName)
 							while (iss >> vertex)
 							{
 								graph_l[i].push_back(vertex);
+								m++;
 							}
 						}
 					}
@@ -172,18 +177,18 @@ void Graph::addEdge(int from, int to, int weight)
 				   if (w)
 				   {
 					   graph_lw[from - 1].push_back(make_pair(to, weight));
-					   if (!d)
+					   /*if (!d)
 					   {
 						   graph_lw[to - 1].push_back(make_pair(from, weight));
-					   }
+					   }*/
 				   }
 				   else
 				   {
 					   graph_l[from - 1].push_back(to);
-					   if (!d)
+					   /*if (!d)
 					   {
 						   graph_l[to - 1].push_back(from);
-					   }
+					   }*/
 				   }
 				   break;
 		}
@@ -193,18 +198,18 @@ void Graph::addEdge(int from, int to, int weight)
 				   if (w)
 				   {
 					   graph_ew.push_back(make_tuple(from, to, weight));
-					   if (!d)
+					   /*if (!d)
 					   {
 						   graph_ew.push_back(make_tuple(to, from, weight));
-					   }
+					   }*/
 				   }
 				   else
 				   {
 					   graph_e.push_back(make_pair(from, to));
-					   if (!d)
+					   /*if (!d)
 					   {
 						   graph_e.push_back(make_pair(to, from));
-					   }
+					   }*/
 				   }
 
 				   m++;
@@ -333,7 +338,7 @@ void Graph::removeEdge(int from, int to)
 							}
 							i++;
 						}
-						if (!d)
+						/*if (!d)
 						{
 							while (i < graph_e.size())
 							{
@@ -345,7 +350,7 @@ void Graph::removeEdge(int from, int to)
 								}
 								i++;
 							}
-						}
+						}*/
 					}
 					break;
 		}
@@ -631,12 +636,14 @@ void Graph::transformToListOfEdges()
 {
 	if (graph_form == GRAPH_ListOfEdges) return;
 
+	char old = graph_form;
 	graph_ew.clear();
 	graph_e.clear();
+	graph_form = GRAPH_ListOfEdges;
 
 	m = 0;
 
-	switch (graph_form)
+	switch (old)
 	{
 		case GRAPH_AdjMatrix:
 		{
@@ -648,8 +655,7 @@ void Graph::transformToListOfEdges()
 						   {
 							   if (graph_m[i][j])
 							   {
-								   graph_ew.push_back(make_tuple(i + 1, j + 1, graph_m[i][j]));
-								   m++;
+								   addEdge(i + 1, j + 1, graph_m[i][j]);
 							   }
 						   }
 					   }
@@ -692,8 +698,6 @@ void Graph::transformToListOfEdges()
 				   break;
 		}
 	}
-
-	graph_form = GRAPH_ListOfEdges;
 }
 
 void Graph::writeGraph(const string file_name)
@@ -771,355 +775,6 @@ void Graph::writeGraph(const string file_name)
 				   break;
 		}
 	}
-}
-
-Graph Graph::getSpaningTreePrima()
-{
-	Graph res_graph = Graph(n, graph_form);      
-
-	int max_w = 0;
-	switch (graph_form)
-	{
-	case GRAPH_AdjMatrix:
-	{
-				for (int i = 0; i < n; i++)
-				{
-					for (int j = 0; j < n; j++)
-					{
-						if (graph_m[i][j] > max_w)
-						{
-							max_w = graph_m[i][j];
-						}
-					}
-				}
-				break;
-	}
-	case GRAPH_AdjList:
-	{
-				for (int i = 0; i < n; i++)
-				{
-					for (int j = 0; j < graph_lw[i].size(); j++)
-					{
-						if (graph_lw[i][j].second > max_w)
-						{
-							max_w = graph_lw[i][j].second;
-						}
-					}
-				}
-				break;
-	}
-	case GRAPH_ListOfEdges:
-	{
-				for (int i = 0; i < graph_ew.size(); i++)
-				{
-					if (get<2>(graph_ew[i]) > max_w)
-					{
-						max_w = get<2>(graph_ew[i]);
-					}
-				}
-				break;
-	}
-	}
-	vector <bool> visited(n, false);     
-	vector <int> min_e(n, ++max_w);    
-	vector <int> trans(n, -1);         
-	int ResCost = 0;             
-
-	if (graph_form == GRAPH_AdjMatrix)
-	{
-		min_e[0] = 0;
-
-		for (int i = 0; i < n; i++)
-		{
-			int v = -1;
-			for (int j = 0; j < n; j++)
-			{
-				if (!visited[j] && (v == -1 || min_e[j] < min_e[v]))
-				{
-					v = j;
-				}
-			}
-
-			visited[v] = true;
-			for (int to = 0; to < n; to++)
-			{
-				if (!visited[to] && graph_m[v][to] != 0 && graph_m[v][to] < min_e[to])
-				{
-					min_e[to] = graph_m[v][to];
-					trans[to] = v;
-				}
-			}
-		}
-
-		for (int i = 0; i < n; i++)
-		{
-			if (trans[i] != -1)
-			{
-				res_graph.addEdge(trans[i] + 1, i + 1, graph_m[trans[i]][i]);
-				ResCost += graph_m[trans[i]][i];
-			}
-		}
-	}
-	else if (graph_form == GRAPH_AdjList || graph_form == GRAPH_ListOfEdges) 
-	{
-		set <pair<int, int> > edges;
-		if (graph_form == GRAPH_ListOfEdges)
-		{
-			this->transformToAdjList();
-		}
-
-		int k = 0;
-		while (k < n) 
-		{
-			min_e[k] = 0;
-			edges.insert(make_pair(0, k));
-
-			while (!edges.empty()) 
-			{
-				int v = edges.begin()->second;
-				edges.erase(edges.begin());
-				visited[v] = true;
-
-				for (size_t j = 0; j < graph_lw[v].size(); j++) 
-				{
-					int to = graph_lw[v][j].first - 1;
-					int	cost = graph_lw[v][j].second;
-					if (!visited[to] && cost < min_e[to]) 
-					{
-						edges.erase(make_pair(min_e[to], to));
-						min_e[to] = cost;
-						trans[to] = v;
-						edges.insert(make_pair(min_e[to], to));
-					}
-				}
-			}
-			while (k < n && visited[k]) 
-			{
-				k++;
-			}
-		}
-
-		for (int i = 0; i < n; i++) 
-		{
-			if (trans[i] != -1) 
-			{
-				res_graph.addEdge(trans[i] + 1, i + 1, min_e[i]);
-				ResCost += min_e[i];
-			}
-		}
-	}
-
-	cout << "Prim: " << ResCost << endl;
-
-	return res_graph;
-}
-
-bool EdgeSort(const tuple<int, int, int>& vertex1, const tuple<int, int, int>& vertex2) 
-{
-	return get<2>(vertex1) < get<2>(vertex2);
-}
-
-Graph Graph::getSpaningTreeKruscal()
-{
-	char oldform = GRAPH_ListOfEdges;
-	if (graph_form != GRAPH_ListOfEdges)
-	{
-		oldform = graph_form;
-		this->transformToListOfEdges();
-	}
-	Graph res_graph = Graph(n, oldform);
-	int res_cost = 0;
-	DSU dsu = DSU(n);
-	sort(graph_ew.begin(), graph_ew.end(), EdgeSort);
-
-	for (int i = 0; i < m; i++) 
-	{
-		int vert1 = get<0>(graph_ew[i]);
-		int	vert2 = get<1>(graph_ew[i]);
-		int	weight = get<2>(graph_ew[i]);
-
-		if (dsu.find(vert1) != dsu.find(vert2)) 
-		{
-			res_cost += weight;
-			dsu.unite(vert1, vert2);
-			res_graph.addEdge(vert1, vert2, weight);
-		}
-	}
-	switch (oldform) {
-	case GRAPH_AdjMatrix:
-	{
-						this->transformToAdjMatrix();
-						break;
-	}
-	case GRAPH_AdjList:
-	{
-						this->transformToAdjList();
-						break;
-	}
-	}
-
-	cout << "Krs: " << res_cost << endl;
-	return res_graph;
-}
-
-Graph Graph::getSpaningTreeBoruvka()
-{
-	Graph res_graph = Graph(n, graph_form);
-
-	DSU dsu = DSU(n);
-	vector <int> min_e(n);
-	vector <int> trans(n);
-	int res_cost = 0;
-
-	int max = 0; 
-	switch (graph_form)
-	{
-	case GRAPH_AdjMatrix:
-	{
-							for (int i = 0; i < graph_m.size(); i++) {
-								for (int j = 0; j < graph_m[i].size(); j++) {
-									if (graph_m[i][j] > max)
-										max = graph_m[i][j] + 1;
-								}
-							}
-							break;
-	}
-	case GRAPH_ListOfEdges:
-	{
-							  for (int i = 0; i < graph_ew.size(); i++)
-							  {
-								  if (get<2>(graph_ew[i]) > max)
-									  max = get<2>(graph_ew[i]) + 1;
-							  }
-							  break;
-	}
-	case GRAPH_AdjList:
-	{
-						  for (int i = 0; i < graph_lw.size(); i++)
-						  {
-							  for (int j = 0; j < graph_lw[i].size(); j++)
-							  {
-								  if (graph_lw[i][j].second > max)
-									  max = graph_lw[i][j].second + 1;
-							  }
-						  }
-						  break;
-	}
-	}
-
-	int resgraph_m = 0;
-	while (resgraph_m < n - 1) 
-	{
-		for (int i = 0; i < min_e.size(); i++) 
-		{
-			min_e[i] = max;
-		}
-
-		for (int i = 0; i < trans.size(); i++) 
-		{
-			trans[i] = -1;
-		}
-
-		switch (graph_form)
-		{
-		case GRAPH_AdjMatrix:
-		{
-								for (int i = 0; i < n; i++)
-								{
-									for (int j = 0; j < n; j++)
-									{
-										int vert1 = dsu.find(i);
-										int vert2 = dsu.find(j);
-										int weight = graph_m[i][j];
-										if (weight != 0 && vert1 != vert2)
-										{
-											if (min_e[vert1] > weight)
-											{
-												min_e[vert1] = weight;
-												trans[vert1] = vert2;
-											}
-											if (min_e[vert2] > weight)
-											{
-												min_e[vert2] = weight;
-												trans[vert2] = vert1;
-											}
-										}
-									}
-								}
-								break;
-		}
-		case GRAPH_AdjList:
-		{
-							  for (int i = 0; i < n; i++)
-							  {
-								  for (int j = 0; j < graph_lw[i].size(); j++)
-								  {
-									  int vert1 = dsu.find(i);
-									  int vert2 = dsu.find(graph_lw[i][j].first - 1);
-									  int weight = graph_lw[i][j].second;
-									  if (vert1 != vert2)
-									  {
-										  if (min_e[vert1] > weight)
-										  {
-											  min_e[vert1] = weight;
-											  trans[vert1] = vert2;
-										  }
-										  if (min_e[vert2] > weight)
-										  {
-											  min_e[vert2] = weight;
-											  trans[vert2] = vert1;
-										  }
-									  }
-								  }
-							  }
-							  break;
-		}
-		case GRAPH_ListOfEdges:
-		{
-								  for (int i = 0; i < graph_ew.size(); i++)
-								  {
-									  int vert1 = dsu.find(get<0>(graph_ew[i]) - 1);
-									  int vert2 = dsu.find(get<1>(graph_ew[i]) - 1);
-									  int weight = get<2>(graph_ew[i]);
-									  if (vert1 != vert2)
-									  {
-										  if (min_e[vert1] > weight)
-										  {
-											  min_e[vert1] = weight;
-											  trans[vert1] = vert2;
-										  }
-										  if (min_e[vert2] > weight)
-										  {
-											  min_e[vert2] = weight;
-											  trans[vert2] = vert1;
-										  }
-									  }
-								  }
-								  break;
-		}
-		}
-
-		bool check = true;
-		for (int i = 0; i < n; i++) {
-			if (trans[i] != -1)
-				check = false;
-		}
-		if (check) break;
-
-		for (int i = 0; i < min_e.size(); i++) 
-		{
-			if ((trans[i] != -1) && (dsu.find(i) != dsu.find(trans[i])) && (min_e[i] != max))
-			{
-				res_graph.addEdge(i + 1, trans[i] + 1, min_e[i]);
-				res_cost += min_e[i];
-				dsu.unite(i, trans[i]);
-				resgraph_m++;
-			}
-		}
-	}
-
-	cout << "Bor: " << res_cost << endl;
-	return res_graph;
 }
 
 int Graph::checkEuler_c(bool &circleExist)
@@ -1433,7 +1088,7 @@ vector<int> Graph::getEuleranTourFleri()
 	if (graph_form == GRAPH_ListOfEdges)
 	{
 		tr = true;
-		transformToAdjList();
+		this->transformToAdjList();
 	}
 
 	k = checkEuler(circleExist);
@@ -1803,4 +1458,356 @@ vector<int> Graph:: getEuleranTourEffective()
 	}
 
 	return res;
+}
+
+Graph Graph::getSpaningTreePrima()
+{
+	Graph res_graph = Graph(n, graph_form);   
+	bool tr = false;
+
+	int max_w = 0;
+	switch (graph_form)
+	{
+	case GRAPH_AdjMatrix:
+	{
+				for (int i = 0; i < n; i++)
+				{
+					for (int j = 0; j < n; j++)
+					{
+						if (graph_m[i][j] > max_w)
+						{
+							max_w = graph_m[i][j];
+						}
+					}
+				}
+				break;
+	}
+	case GRAPH_AdjList:
+	{
+				for (int i = 0; i < n; i++)
+				{
+					for (int j = 0; j < graph_lw[i].size(); j++)
+					{
+						if (graph_lw[i][j].second > max_w)
+						{
+							max_w = graph_lw[i][j].second;
+						}
+					}
+				}
+				break;
+	}
+	case GRAPH_ListOfEdges:
+	{
+				for (int i = 0; i < graph_ew.size(); i++)
+				{
+					if (get<2>(graph_ew[i]) > max_w)
+					{
+						max_w = get<2>(graph_ew[i]);
+					}
+				}
+				break;
+	}
+	}
+	vector <bool> visited(n, false);     
+	vector <int> min_e(n, ++max_w);    
+	vector <int> trans(n, -1);         
+	int ResCost = 0;             
+
+	if (graph_form == GRAPH_AdjMatrix)
+	{
+		min_e[0] = 0;
+
+		for (int i = 0; i < n; i++)
+		{
+			int v = -1;
+			for (int j = 0; j < n; j++)
+			{
+				if (!visited[j] && (v == -1 || min_e[j] < min_e[v]))
+				{
+					v = j;
+				}
+			}
+
+			visited[v] = true;
+			for (int to = 0; to < n; to++)
+			{
+				if (!visited[to] && graph_m[v][to] != 0 && graph_m[v][to] < min_e[to])
+				{
+					min_e[to] = graph_m[v][to];
+					trans[to] = v;
+				}
+			}
+		}
+
+		for (int i = 0; i < n; i++)
+		{
+			if (trans[i] != -1)
+			{
+				res_graph.addEdge(trans[i] + 1, i + 1, graph_m[trans[i]][i]);
+				ResCost += graph_m[trans[i]][i];
+			}
+		}
+	}
+	else if (graph_form == GRAPH_AdjList || graph_form == GRAPH_ListOfEdges) 
+	{
+		set <pair<int, int> > edges;
+		if (graph_form == GRAPH_ListOfEdges)
+		{
+			tr = true;
+			this->transformToAdjList();
+		}
+
+		int k = 0;
+		while (k < n) 
+		{
+			min_e[k] = 0;
+			edges.insert(make_pair(0, k));
+
+			while (!edges.empty()) 
+			{
+				int v = edges.begin()->second;
+				edges.erase(edges.begin());
+				visited[v] = true;
+
+				for (size_t j = 0; j < graph_lw[v].size(); j++) 
+				{
+					int to = graph_lw[v][j].first - 1;
+					int	cost = graph_lw[v][j].second;
+					if (!visited[to] && cost < min_e[to]) 
+					{
+						edges.erase(make_pair(min_e[to], to));
+						min_e[to] = cost;
+						trans[to] = v;
+						edges.insert(make_pair(min_e[to], to));
+					}
+				}
+			}
+			while (k < n && visited[k]) 
+			{
+				k++;
+			}
+		}
+
+		for (int i = 0; i < n; i++) 
+		{
+			if (trans[i] != -1) 
+			{
+				res_graph.addEdge(trans[i] + 1, i + 1, min_e[i]);
+				ResCost += min_e[i];
+			}
+		}
+	}
+
+	cout << "Prim: " << ResCost << endl;
+	if (tr)
+		transformToListOfEdges();
+	return res_graph;
+}
+
+bool EdgeSort(const tuple<int, int, int>& vertex1, const tuple<int, int, int>& vertex2) 
+{
+	return get<2>(vertex1) < get<2>(vertex2);
+}
+
+Graph Graph::getSpaningTreeKruscal()
+{
+	char oldform = GRAPH_ListOfEdges;
+	if (graph_form != GRAPH_ListOfEdges)
+	{
+		oldform = graph_form;
+		this->transformToListOfEdges();
+	}
+	Graph res_graph = Graph(n, oldform);
+	int res_cost = 0;
+	DSU dsu = DSU(n);
+	sort(graph_ew.begin(), graph_ew.end(), EdgeSort);
+
+	for (int i = 0; i < m; i++) 
+	{
+		int vert1 = get<0>(graph_ew[i]);
+		int	vert2 = get<1>(graph_ew[i]);
+		int	weight = get<2>(graph_ew[i]);
+
+		if (dsu.find(vert1) != dsu.find(vert2)) 
+		{
+			res_cost += weight;
+			dsu.unite(vert1, vert2);
+			res_graph.addEdge(vert1, vert2, weight);
+		}
+	}
+	switch (oldform) {
+	case GRAPH_AdjMatrix:
+	{
+						this->transformToAdjMatrix();
+						break;
+	}
+	case GRAPH_AdjList:
+	{
+						this->transformToAdjList();
+						break;
+	}
+	}
+
+	cout << "Krs: " << res_cost << endl;
+	return res_graph;
+}
+
+Graph Graph::getSpaningTreeBoruvka()
+{
+	Graph res_graph = Graph(n, graph_form);
+
+	DSU dsu = DSU(n);
+	vector <int> min_e(n);
+	vector <int> trans(n);
+	int res_cost = 0;
+
+	int max = 0; 
+	switch (graph_form)
+	{
+	case GRAPH_AdjMatrix:
+	{
+							for (int i = 0; i < graph_m.size(); i++) {
+								for (int j = 0; j < graph_m[i].size(); j++) {
+									if (graph_m[i][j] > max)
+										max = graph_m[i][j] + 1;
+								}
+							}
+							break;
+	}
+	case GRAPH_ListOfEdges:
+	{
+							  for (int i = 0; i < graph_ew.size(); i++)
+							  {
+								  if (get<2>(graph_ew[i]) > max)
+									  max = get<2>(graph_ew[i]) + 1;
+							  }
+							  break;
+	}
+	case GRAPH_AdjList:
+	{
+						  for (int i = 0; i < graph_lw.size(); i++)
+						  {
+							  for (int j = 0; j < graph_lw[i].size(); j++)
+							  {
+								  if (graph_lw[i][j].second > max)
+									  max = graph_lw[i][j].second + 1;
+							  }
+						  }
+						  break;
+	}
+	}
+
+	int resgraph_m = 0;
+	while (resgraph_m < n - 1) 
+	{
+		for (int i = 0; i < min_e.size(); i++) 
+		{
+			min_e[i] = max;
+		}
+
+		for (int i = 0; i < trans.size(); i++) 
+		{
+			trans[i] = -1;
+		}
+
+		switch (graph_form)
+		{
+		case GRAPH_AdjMatrix:
+		{
+								for (int i = 0; i < n; i++)
+								{
+									for (int j = 0; j < n; j++)
+									{
+										int vert1 = dsu.find(i);
+										int vert2 = dsu.find(j);
+										int weight = graph_m[i][j];
+										if (weight != 0 && vert1 != vert2)
+										{
+											if (min_e[vert1] > weight)
+											{
+												min_e[vert1] = weight;
+												trans[vert1] = vert2;
+											}
+											if (min_e[vert2] > weight)
+											{
+												min_e[vert2] = weight;
+												trans[vert2] = vert1;
+											}
+										}
+									}
+								}
+								break;
+		}
+		case GRAPH_AdjList:
+		{
+							  for (int i = 0; i < n; i++)
+							  {
+								  for (int j = 0; j < graph_lw[i].size(); j++)
+								  {
+									  int vert1 = dsu.find(i);
+									  int vert2 = dsu.find(graph_lw[i][j].first - 1);
+									  int weight = graph_lw[i][j].second;
+									  if (vert1 != vert2)
+									  {
+										  if (min_e[vert1] > weight)
+										  {
+											  min_e[vert1] = weight;
+											  trans[vert1] = vert2;
+										  }
+										  if (min_e[vert2] > weight)
+										  {
+											  min_e[vert2] = weight;
+											  trans[vert2] = vert1;
+										  }
+									  }
+								  }
+							  }
+							  break;
+		}
+		case GRAPH_ListOfEdges:
+		{
+								  for (int i = 0; i < graph_ew.size(); i++)
+								  {
+									  int vert1 = dsu.find(get<0>(graph_ew[i]) - 1);
+									  int vert2 = dsu.find(get<1>(graph_ew[i]) - 1);
+									  int weight = get<2>(graph_ew[i]);
+									  if (vert1 != vert2)
+									  {
+										  if (min_e[vert1] > weight)
+										  {
+											  min_e[vert1] = weight;
+											  trans[vert1] = vert2;
+										  }
+										  if (min_e[vert2] > weight)
+										  {
+											  min_e[vert2] = weight;
+											  trans[vert2] = vert1;
+										  }
+									  }
+								  }
+								  break;
+		}
+		}
+
+		bool check = true;
+		for (int i = 0; i < n; i++) {
+			if (trans[i] != -1)
+				check = false;
+		}
+		if (check) break;
+
+		for (int i = 0; i < min_e.size(); i++) 
+		{
+			if ((trans[i] != -1) && (dsu.find(i) != dsu.find(trans[i])) && (min_e[i] != max))
+			{
+				res_graph.addEdge(i + 1, trans[i] + 1, min_e[i]);
+				res_cost += min_e[i];
+				dsu.unite(i, trans[i]);
+				resgraph_m++;
+			}
+		}
+	}
+
+	cout << "Bor: " << res_cost << endl;
+	return res_graph;
 }
